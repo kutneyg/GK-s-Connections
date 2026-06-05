@@ -1,0 +1,6 @@
+{
+  "name": "Connections Unlimited",
+  "description": "An unlimited and customizable version of the popular grid word-association game with dynamic theme-based puzzle generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
