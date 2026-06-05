@@ -131,17 +131,43 @@ export default function App() {
         body: JSON.stringify({ theme }),
       });
 
+      const contentType = response.headers.get("content-type");
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "An error occurred during AI generation.");
+        let errorMessage = "An error occurred during AI generation.";
+        if (contentType && contentType.includes("application/json")) {
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorData.details || errorMessage;
+          } catch (_) {
+            // Keep default message if parsing fails
+          }
+        } else {
+          try {
+            const textResponse = await response.text();
+            if (textResponse.includes("<body") || textResponse.includes("<html") || textResponse.includes("<!DOCTYPE")) {
+              errorMessage = "The server is currently starting up, processing, or returned an unexpected page. Please make sure GEMINI_API_KEY is configured in Settings -> Secrets.";
+            } else {
+              errorMessage = textResponse || errorMessage;
+            }
+          } catch (_) {
+            // Keep default message if text read fails
+          }
+        }
+        throw new Error(errorMessage);
+      }
+
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Server returned a non-JSON response. Please verify the server is running correctly.");
       }
 
       const generatedPuzzle = await response.json();
       setActivePuzzle(generatedPuzzle as Puzzle);
     } catch (err: any) {
       console.error("AI Generation failed:", err);
-      setAiError(err.message || "Failed to make custom board. Please double check that server is online and API key is set.");
-      throw err;
+      const userMessage = err.message || "Failed to make custom board. Please double check that server is online and API key is set.";
+      setAiError(userMessage);
+      throw new Error(userMessage);
     } finally {
       setIsAIGenerating(false);
     }
