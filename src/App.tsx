@@ -30,6 +30,7 @@ const DEFAULT_STATS: UserStats = {
 
 export default function App() {
   const [activePuzzle, setActivePuzzle] = useState<Puzzle>(PRESET_PUZZLES[0]);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<"easy" | "medium" | "hard" | "super-hard" | "random">("random");
   const [stats, setStats] = useState<UserStats>(DEFAULT_STATS);
   const [history, setHistory] = useState<PlayedGame[]>([]);
   const [showStatsModal, setShowStatsModal] = useState(false);
@@ -109,12 +110,26 @@ export default function App() {
     const found = PRESET_PUZZLES.find(p => p.id === puzzleId);
     if (found) {
       setActivePuzzle(found);
+      if (found.difficulty) {
+        setSelectedDifficulty(found.difficulty);
+      }
     }
   };
 
   // Trigger random puzzle select (preset list)
-  const handleLoadRandomPreset = () => {
-    const random = getRandomPreset(activePuzzle.id);
+  const handleLoadRandomPreset = (diffOverride?: "easy" | "medium" | "hard" | "super-hard" | "random") => {
+    const activeDiff = diffOverride !== undefined ? diffOverride : selectedDifficulty;
+    const random = getRandomPreset(activePuzzle.id, activeDiff);
+    setActivePuzzle(random);
+    if (random.difficulty) {
+      setSelectedDifficulty(random.difficulty);
+    }
+  };
+
+  // Explicit handler when user selects a difficulty button manually
+  const handleDifficultyChange = (diff: "easy" | "medium" | "hard" | "super-hard" | "random") => {
+    setSelectedDifficulty(diff);
+    const random = getRandomPreset(activePuzzle.id, diff);
     setActivePuzzle(random);
   };
 
@@ -128,7 +143,7 @@ export default function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ theme }),
+        body: JSON.stringify({ theme, difficulty: selectedDifficulty }),
       });
 
       const contentType = response.headers.get("content-type");
@@ -232,7 +247,7 @@ export default function App() {
                 id="preset-level-picker"
                 value={activePuzzle.id.startsWith("preset-") ? activePuzzle.id : ""}
                 onChange={(e) => handleSelectPreset(e.target.value)}
-                className="flex-1 sm:flex-initial px-3 py-1.5 text-xs bg-[#F5F5F5] border border-[#E2E2E2] rounded-lg text-[#121212] outline-hidden focus:border-[#787878] font-sans cursor-pointer font-semibold uppercase tracking-wider"
+                className="flex-1 sm:flex-initial px-3 py-1.5 text-xs bg-[#F5F5F5] border border-[#E2E2E2] rounded-lg text-[#121212] outline-hidden focus:border-[#787878] font-sans cursor-pointer font-semibold uppercase tracking-wider font-sans font-bold"
               >
                 <option value="" disabled>-- Select Preset --</option>
                 {PRESET_PUZZLES.map((preset, index) => (
@@ -244,12 +259,50 @@ export default function App() {
 
               <button
                 id="random-preset-btn"
-                onClick={handleLoadRandomPreset}
+                onClick={() => handleLoadRandomPreset()}
                 className="p-1.5 hover:bg-[#F5F5F5] text-[#121212] border border-[#E2E2E2] bg-white rounded-lg transition-colors cursor-pointer flex items-center justify-center flex-shrink-0"
                 title="Random Preset Level"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
+            </div>
+          </div>
+
+          {/* Segmented Difficulty Controller Row - Inspired by Connections Unlimited */}
+          <div className="pt-3.5 border-t border-[#E2E2E2] space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-[#787878] uppercase tracking-widest font-sans">
+                Difficulty Class:
+              </span>
+              <span className="text-[10px] text-[#787878] font-sans italic">
+                Auto-updates grid & AI theme prompt
+              </span>
+            </div>
+            <div className="grid grid-cols-2 md:flex md:flex-wrap items-center gap-1.5">
+              {[
+                { value: "easy", label: "Easy", color: "bg-[#f9df6d] text-neutral-900 border-[#f9df6d]", dot: "bg-[#f9df6d]" },
+                { value: "medium", label: "Medium", color: "bg-[#a0c35a] text-neutral-900 border-[#a0c35a]", dot: "bg-[#a0c35a]" },
+                { value: "hard", label: "Hard", color: "bg-[#b0c4ef] text-neutral-900 border-[#b0c4ef]", dot: "bg-[#b0c4ef]" },
+                { value: "super-hard", label: "Super Hard", color: "bg-[#ba7ec8] text-white border-[#ba7ec8]", dot: "bg-[#ba7ec8]" },
+                { value: "random", label: "Random", color: "bg-[#121212] text-white border-[#121212]", dot: "bg-[#787878]" },
+              ].map((item) => {
+                const isActive = selectedDifficulty === item.value;
+                return (
+                  <button
+                    key={item.value}
+                    id={`diff-btn-${item.value}`}
+                    onClick={() => handleDifficultyChange(item.value as any)}
+                    className={`flex-grow md:flex-none px-3.5 py-2 text-xs font-bold rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      isActive
+                        ? `${item.color} shadow-xs font-black scale-[1.02]`
+                        : "bg-white border-[#E2E2E2] text-[#121212] hover:bg-[#F5F5F5] hover:border-[#121212]"
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full ${item.dot} ${isActive ? "border border-black/20" : ""}`} />
+                    {item.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

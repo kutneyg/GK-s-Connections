@@ -10,6 +10,7 @@ export const PRESET_PUZZLES: Puzzle[] = [
     id: "preset-1",
     title: "Starter Pack",
     isCustom: false,
+    difficulty: "easy",
     categories: [
       {
         title: "SHADES OF BLUE",
@@ -41,6 +42,7 @@ export const PRESET_PUZZLES: Puzzle[] = [
     id: "preset-2",
     title: "Animal Planet",
     isCustom: false,
+    difficulty: "medium",
     categories: [
       {
         title: "FLIGHTLESS BIRDS",
@@ -72,6 +74,7 @@ export const PRESET_PUZZLES: Puzzle[] = [
     id: "preset-3",
     title: "Game Night",
     isCustom: false,
+    difficulty: "medium",
     categories: [
       {
         title: "CARD GAMES",
@@ -103,6 +106,7 @@ export const PRESET_PUZZLES: Puzzle[] = [
     id: "preset-4",
     title: "Musical Nuance",
     isCustom: false,
+    difficulty: "hard",
     categories: [
       {
         title: "WOODWIND INSTRUMENTS",
@@ -134,6 +138,7 @@ export const PRESET_PUZZLES: Puzzle[] = [
     id: "preset-5",
     title: "Tech & Office",
     isCustom: false,
+    difficulty: "easy",
     categories: [
       {
         title: "WEB BROWSERS",
@@ -165,6 +170,7 @@ export const PRESET_PUZZLES: Puzzle[] = [
     id: "preset-6",
     title: "Chef's Kiss",
     isCustom: false,
+    difficulty: "medium",
     categories: [
       {
         title: "POPULAR HERBS",
@@ -196,6 +202,7 @@ export const PRESET_PUZZLES: Puzzle[] = [
     id: "preset-7",
     title: "Nature & Space",
     isCustom: false,
+    difficulty: "hard",
     categories: [
       {
         title: "TREE ANATOMY",
@@ -227,6 +234,7 @@ export const PRESET_PUZZLES: Puzzle[] = [
     id: "preset-8",
     title: "Fit & Active",
     isCustom: false,
+    difficulty: "easy",
     categories: [
       {
         title: "FOOTWEAR DESIGNS",
@@ -258,6 +266,7 @@ export const PRESET_PUZZLES: Puzzle[] = [
     id: "preset-9",
     title: "Magic & Myth",
     isCustom: false,
+    difficulty: "super-hard",
     categories: [
       {
         title: "ASTRONOMY Nouns",
@@ -289,6 +298,7 @@ export const PRESET_PUZZLES: Puzzle[] = [
     id: "preset-10",
     title: "Time & Measure",
     isCustom: false,
+    difficulty: "super-hard",
     categories: [
       {
         title: "TIME INTERVALS",
@@ -318,8 +328,18 @@ export const PRESET_PUZZLES: Puzzle[] = [
   }
 ];
 
-export function getRandomPreset(excludeId?: string): Puzzle {
-  const filtered = PRESET_PUZZLES.filter(p => p.id !== excludeId);
-  const pool = filtered.length > 0 ? filtered : PRESET_PUZZLES;
-  return pool[Math.floor(Math.random() * pool.length)];
+export function getRandomPreset(
+  excludeId?: string,
+  difficulty?: "easy" | "medium" | "hard" | "super-hard" | "random"
+): Puzzle {
+  let pool = PRESET_PUZZLES;
+  if (difficulty && difficulty !== "random") {
+    const matched = PRESET_PUZZLES.filter(p => p.difficulty === difficulty);
+    if (matched.length > 0) {
+      pool = matched;
+    }
+  }
+  const filtered = pool.filter(p => p.id !== excludeId);
+  const finalPool = filtered.length > 0 ? filtered : pool;
+  return finalPool[Math.floor(Math.random() * finalPool.length)] || PRESET_PUZZLES[0];
 }

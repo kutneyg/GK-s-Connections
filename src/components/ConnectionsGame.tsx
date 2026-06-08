@@ -226,15 +226,37 @@ export const ConnectionsGame: React.FC<ConnectionsGameProps> = ({ puzzle, onNext
     });
   };
 
+  const getDifficultyBadgeColor = (diff?: string) => {
+    switch (diff) {
+      case "easy":
+        return "bg-[#f9df6d]/20 text-[#a38000] border-[#f9df6d]";
+      case "medium":
+        return "bg-[#a0c35a]/20 text-[#4c6b12] border-[#a0c35a]";
+      case "hard":
+        return "bg-[#b0c4ef]/25 text-[#1e3a8a] border-[#b0c4ef]";
+      case "super-hard":
+        return "bg-[#ba7ec8]/20 text-[#6b21a8] border-[#ba7ec8]";
+      default:
+        return "bg-neutral-100 text-neutral-700 border-neutral-300";
+    }
+  };
+
   return (
     <div id="connections-game-container" className="space-y-6">
       {/* Game Banner Header */}
       <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-3 bg-neutral-50 px-4 py-3 rounded-xl border border-neutral-200">
         <div className="text-center sm:text-left">
-          <span className="text-[10px] bg-neutral-200 text-neutral-800 px-2 py-0.5 rounded-sm font-semibold tracking-wider uppercase font-sans">
-            {puzzle.isCustom ? "AI Generated Puzzle" : "Classic Preset Library"}
-          </span>
-          <h2 className="text-md font-bold text-neutral-900 font-sans mt-0.5">
+          <div className="flex flex-wrap items-center gap-1.5 justify-center sm:justify-start">
+            <span className="text-[10px] bg-neutral-200 text-neutral-800 px-2 py-0.5 rounded-sm font-semibold tracking-wider uppercase font-sans">
+              {puzzle.isCustom ? "AI Generated" : "Preset Level"}
+            </span>
+            {puzzle.difficulty && (
+              <span className={`text-[10px] px-2 py-0.5 rounded-sm font-bold tracking-widest uppercase font-sans border ${getDifficultyBadgeColor(puzzle.difficulty)}`}>
+                {puzzle.difficulty === "super-hard" ? "SUPER HARD" : puzzle.difficulty}
+              </span>
+            )}
+          </div>
+          <h2 className="text-sm font-bold text-neutral-900 font-sans mt-1">
             {puzzle.title} {puzzle.isCustom && puzzle.theme ? `• "${puzzle.theme}"` : ""}
           </h2>
         </div>

@@ -16,6 +16,7 @@ export interface Puzzle {
   categories: Category[]; // Exactly 4 categories
   isCustom: boolean;
   theme?: string;
+  difficulty?: "easy" | "medium" | "hard" | "super-hard";
 }
 
 export interface PlayedGame {

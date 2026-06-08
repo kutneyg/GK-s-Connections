@@ -41,8 +41,9 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { theme } = req.body || {};
+    const { theme, difficulty } = req.body || {};
     const requestedTheme = theme && theme.trim() ? theme.trim() : "Any creative broad theme";
+    const requestedDifficulty = difficulty || "random";
 
     const ai = getGeminiClient();
 
@@ -87,6 +88,35 @@ export default async function handler(req: any, res: any) {
       required: ["title", "categories"],
     };
 
+    let difficultyInstructions = "";
+    if (requestedDifficulty === "easy") {
+      difficultyInstructions = `
+DIFFICULTY SETTING: EASY.
+The board should be straightforward, highly intuitive, and beginner-friendly.
+Ensure words match their respective categories clearly and with direct, literal synonyms or logical relationships.
+Avoid deep abstract traps, anagram wordplay, or extreme letter-pattern gimmicks. Ensure low overlap or obvious distinctions between groups.`;
+    } else if (requestedDifficulty === "medium") {
+      difficultyInstructions = `
+DIFFICULTY SETTING: MEDIUM.
+This is a standard Connections puzzle difficulty.
+There should be slight semantic overlaps (e.g., a word that could tentatively belong to another group) but keep the overall associations fairly clear and classic.`;
+    } else if (requestedDifficulty === "hard") {
+      difficultyInstructions = `
+DIFFICULTY SETTING: HARD.
+This must be a highly challenging game.
+Sift in strong overlapping matches (e.g., several words in the 16 can easily look like they belong in 2 or 3 groups).
+Use clever or tricky double meanings, slang, or specialized vocabulary. Solid logic is required.`;
+    } else if (requestedDifficulty === "super-hard") {
+      difficultyInstructions = `
+DIFFICULTY SETTING: SUPER HARD / EXPERT (matching connectionsunlimited.org Expert mode).
+This should be a devious, highly tricky puzzle that pushes the limits of language wordplay!
+Incorporate heavy red-herrings and overlapping words. Feel free to use complex meta linguistic relations, homophones, phonetic rhymes, palindromes, spelling patterns (e.g., words combining with prefixes/suffixes or spelling out other words), or expressions where words precede or follow another phrase. It should feel incredibly gratifying to solve.`;
+    } else {
+      difficultyInstructions = `
+DIFFICULTY SETTING: RANDOM.
+Design a standard balanced Connections puzzle with organic overlaps and creative topics.`;
+    }
+
     const promptText = `You are a master puzzle designer for the NYTimes Connections game.
 Your task is to design a mind-bending, elegant, and fully accurate Connections puzzle.
 
@@ -103,6 +133,8 @@ GUIDELINES FOR CRITICAL ACCURACY:
 3. Every word should be in UPPERCASE. Prefer single words of 3 to 10 characters. Avoid long multi-word phrases.
 4. You must output EXACTLY one category for level 0, one category for level 1, one category for level 2, and one category for level 3.
 5. Sift in subtle overlaps! True Connections features words that could fit into multiple categories, but only one partition of 4x4 allows all 16 words to be resolved.
+
+${difficultyInstructions}
 
 Theme to design around: ${requestedTheme}
 Take your time to think carefully and generate a high-quality Connections board.`;
@@ -172,6 +204,9 @@ Take your time to think carefully and generate a high-quality Connections board.
       categories: normalizedCategories,
       isCustom: true,
       theme: requestedTheme,
+      difficulty: requestedDifficulty === "random" 
+        ? (["easy", "medium", "hard", "super-hard"][Math.floor(Math.random() * 4)] as any) 
+        : requestedDifficulty
     };
 
     return res.status(200).json(customPuzzle);
