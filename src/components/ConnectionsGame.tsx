@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Shuffle, RotateCw, Check, Share2, HelpCircle, Eye, EyeOff, ClipboardCheck, ArrowRight, Award } from "lucide-react";
+import { Shuffle, RotateCw, Check, Share2, HelpCircle, Eye, EyeOff, ClipboardCheck, ArrowRight, Award, RotateCcw } from "lucide-react";
 import { Puzzle, Category, PlayedGame, UserStats } from "../types";
 
 interface ConnectionsGameProps {
@@ -55,6 +55,26 @@ export const ConnectionsGame: React.FC<ConnectionsGameProps> = ({ puzzle, onNext
     setShakeGrid(false);
     setCopiedShareLink(false);
   }, [puzzle]);
+
+  // Reset the current puzzle play state back to pristine state without requesting a new puzzle
+  const handleRetry = () => {
+    // Collect all words across the 4 categories
+    const words = puzzle.categories.reduce((acc: string[], cat) => [...acc, ...cat.words], [] as string[]);
+    // Randomize positions again
+    const shuffled = [...words].sort(() => Math.random() - 0.5);
+
+    setActiveWords(shuffled);
+    setSelectedWords([]);
+    setSolvedCategories([]);
+    setMistakesRemaining(4);
+    setAttempts([]);
+    setAlertMsg("Level restarted - Good luck!");
+    setIsGameFinished(false);
+    setWon(false);
+    setRevealSolutions(false);
+    setShakeGrid(false);
+    setCopiedShareLink(false);
+  };
 
   // Alert dismisser timer
   useEffect(() => {
@@ -261,7 +281,17 @@ export const ConnectionsGame: React.FC<ConnectionsGameProps> = ({ puzzle, onNext
           </h2>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <button
+            id="retry-level-now"
+            onClick={handleRetry}
+            className="p-1.5 hover:bg-neutral-200 text-neutral-700 font-semibold rounded-lg flex items-center gap-1 text-xs cursor-pointer transition-colors"
+            title="Reset mistakes and clear progress to try this level again"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-neutral-700" />
+            Restart Level
+          </button>
+
           <button
             id="how-to-play-toggle"
             onClick={() => setShowHelpMsg(!showHelpMsg)}
@@ -540,6 +570,15 @@ export const ConnectionsGame: React.FC<ConnectionsGameProps> = ({ puzzle, onNext
                       Share Connections Grid
                     </>
                   )}
+                </button>
+
+                <button
+                  id="retry-level-btn"
+                  onClick={handleRetry}
+                  className="px-5 py-2 bg-white text-neutral-800 border border-neutral-300 hover:border-neutral-400 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Retry Level
                 </button>
 
                 <button
